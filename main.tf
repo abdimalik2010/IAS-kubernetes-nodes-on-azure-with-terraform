@@ -58,7 +58,7 @@ resource "azurerm_network_security_group" "k8a" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-    security_rule {
+  security_rule {
     name                       = "Kubelet-api"
     description                = "allow-http"
     priority                   = 140
@@ -70,7 +70,7 @@ resource "azurerm_network_security_group" "k8a" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-    security_rule {
+  security_rule {
     name                       = "kube-scheduler"
     description                = "allow-http"
     priority                   = 150
@@ -94,7 +94,7 @@ resource "azurerm_network_security_group" "k8a" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-    security_rule {
+  security_rule {
     name                       = "ssh"
     priority                   = 170
     direction                  = "Inbound"
@@ -105,7 +105,7 @@ resource "azurerm_network_security_group" "k8a" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-    security_rule {
+  security_rule {
     name                       = "htp"
     priority                   = 180
     direction                  = "Inbound"
@@ -116,7 +116,7 @@ resource "azurerm_network_security_group" "k8a" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-    security_rule {
+  security_rule {
     name                       = "https"
     priority                   = 190
     direction                  = "Inbound"
@@ -134,7 +134,7 @@ resource "azurerm_network_security_group" "k8b" {
   name                = "k8-worker-nsg"
   location            = azurerm_resource_group.k8.location
   resource_group_name = azurerm_resource_group.k8.name
-  
+
   security_rule {
     name                       = "kubelet-api"
     priority                   = 100
@@ -159,7 +159,7 @@ resource "azurerm_network_security_group" "k8b" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-     security_rule {
+  security_rule {
     name                       = "ssh"
     priority                   = 170
     direction                  = "Inbound"
@@ -196,7 +196,7 @@ resource "azurerm_subnet" "k8" {
   name                 = "k8-sunbet${count.index}"
   resource_group_name  = azurerm_resource_group.k8.name
   virtual_network_name = azurerm_virtual_network.k8.name
-  address_prefixes   = ["10.0.${count.index+1}.0/24"]
+  address_prefixes     = ["10.0.${count.index + 1}.0/24"]
 }
 
 resource "azurerm_network_interface" "k8a" {
@@ -226,14 +226,14 @@ resource "azurerm_network_interface" "k8b" {
 }
 
 resource "azurerm_linux_virtual_machine" "k8a" {
-  name                = "controlplane"
-  resource_group_name = azurerm_resource_group.k8.name
-  location            = azurerm_resource_group.k8.location
-  size                = "Standard_F2"
-  admin_username      = "kroo"
-  network_interface_ids = [azurerm_network_interface.k8a.id,]
-  custom_data = base64encode(data.template_file.linux-vm-cloud-init.rendered)
-  
+  name                  = "controlplane"
+  resource_group_name   = azurerm_resource_group.k8.name
+  location              = azurerm_resource_group.k8.location
+  size                  = "Standard_F2"
+  admin_username        = "kroo"
+  network_interface_ids = [azurerm_network_interface.k8a.id, ]
+  custom_data           = base64encode(data.template_file.master-node-cloud-init.rendered)
+
 
   admin_ssh_key {
     username   = "kroo"
@@ -252,17 +252,23 @@ resource "azurerm_linux_virtual_machine" "k8a" {
     version   = "latest"
   }
 }
-data "template_file" "linux-vm-cloud-init" {
-  template = file("user-data.sh")
+data "template_file" "master-node-cloud-init" {
+  template = file("master-node-user-data.sh")
+}
+
+data "template_file" "worker-node-cloud-init" {
+  template = file("worker-node-user-data.sh")
 }
 
 resource "azurerm_linux_virtual_machine" "k8b" {
-  name                = "worker-node"
-  resource_group_name = azurerm_resource_group.k8.name
-  location            = azurerm_resource_group.k8.location
-  size                = "Standard_F2"
-  admin_username      = "kroo"
-  network_interface_ids = [azurerm_network_interface.k8b.id,]
+    count = 1
+  name                  = "worker-node-${count.index +1}"
+  resource_group_name   = azurerm_resource_group.k8.name
+  location              = azurerm_resource_group.k8.location
+  size                  = "Standard_F2"
+  admin_username        = "kroo"
+  network_interface_ids = [azurerm_network_interface.k8b.id, ]
+  custom_data           = base64encode(data.template_file.worker-node-cloud-init.rendered)
 
   admin_ssh_key {
     username   = "kroo"
