@@ -286,6 +286,19 @@ resource "azurerm_linux_virtual_machine" "k8b" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+  depends_on = [
+    azurerm_linux_virtual_machine.k8a
+  ]
+}
+
+output "master-node-ip" {
+    value = azurerm_public_ip.k8[0].ip_address
+  
+}
+
+output "worker-node-ip" {
+    value = azurerm_public_ip.k8[1].ip_address
+  
 }
 # ssh -i ~/.ssh/id_rsa kroo@13.80.41.40
 # ssh -i ~/.ssh/id_rsa kroo@13.80.43.81

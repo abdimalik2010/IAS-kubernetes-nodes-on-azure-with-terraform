@@ -78,4 +78,6 @@ sudo apt update
 sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
+sudo ./join-worker-node.sh 
+
 

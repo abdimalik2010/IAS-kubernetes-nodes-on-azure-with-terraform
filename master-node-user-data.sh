@@ -1,4 +1,5 @@
 #! /bin/bash
+
 # Check first if the server configured correctly and the network security group configured accordinly
 sudo apt update && sudo apt upgrade
 sudo apt install -y apache2
@@ -105,4 +106,6 @@ curl https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/ca
 # Issue the following command to install Calico.
 kubectl apply -f canal.yaml
 
+# Join the worker nodes
 
+sudo ./join-worker-node.sh 
